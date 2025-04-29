@@ -1,20 +1,29 @@
 # LLM Benchmark Tool
 
-A minimalist Python script to benchmark a Language Model's performance metrics, focusing on latency. This tool connects to an OpenAI-compatible endpoint and measures response times across multiple requests.
+A minimalist Python tool to benchmark Language Model (LLM) performance metrics, focusing on latency and statistical analysis. This project provides both a command-line interface and a FastAPI-based REST API to benchmark OpenAI-compatible endpoints, measuring response times and providing detailed statistics.
 
 ## Features
 
 - Measures latency (response time) with detailed statistical analysis
 - Provides mean, median, standard deviation, and percentile metrics
 - Visualizes results with ASCII histograms in the console
-- Implements proper error handling and retry logic
+- Implements robust error handling and retry logic
 - Configurable parameters for endpoint, API key, model, etc.
+- Exposes a REST API for programmatic benchmarking
 
 ## Requirements
 
 - Python 3.11 or higher
-- Dependencies:
-  - httpx
+
+### Dependencies
+
+- fastapi
+- httpx
+- python-dotenv
+- python-multipart
+- uvicorn
+
+All dependencies are specified in [pyproject.toml](pyproject.toml).
 
 ## Installation
 
@@ -24,12 +33,14 @@ A minimalist Python script to benchmark a Language Model's performance metrics, 
    cd benchmark
    ```
 
-2. Install dependencies using uv:
+2. Install dependencies using [uv](https://github.com/astral-sh/uv):
    ```
    uv pip install -e .
    ```
 
 ## Usage
+
+### Command-Line Interface
 
 Run the benchmark with default settings:
 
@@ -37,7 +48,7 @@ Run the benchmark with default settings:
 python main.py
 ```
 
-### Command Line Options
+#### Command Line Options
 
 The script supports various command line options to customize the benchmark:
 
@@ -68,7 +79,7 @@ options:
                         Base delay between retries in seconds (default: 1.0)
 ```
 
-### Examples
+#### Examples
 
 Run with a custom endpoint and API key:
 
@@ -93,6 +104,38 @@ Run with increased delay between requests to avoid rate limiting:
 ```bash
 python main.py --request-delay 5.0
 ```
+
+### REST API
+
+You can also run the FastAPI server to access the benchmarking functionality via HTTP endpoints.
+
+#### Start the API server
+
+```bash
+uvicorn main:app --reload
+```
+
+#### Example API Usage
+
+- **POST /benchmark**
+
+  Send a POST request to `/benchmark` with a JSON payload specifying the endpoint, API key, prompt, and other parameters.
+
+  Example request:
+
+  ```bash
+  curl -X POST "http://localhost:8000/benchmark" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "endpoint": "https://api.example.com",
+      "api_key": "your-api-key",
+      "model": "gpt-4",
+      "prompt": "Tell me a short joke",
+      "num_requests": 10
+    }'
+  ```
+
+  The response will include latency statistics and an ASCII histogram.
 
 ## Output
 
@@ -158,13 +201,35 @@ If you encounter SSL errors like `[SSL: WRONG_VERSION_NUMBER] wrong version numb
 
 ## Error Handling
 
-The script implements robust error handling:
+The tool implements robust error handling:
 
 - Connection errors: Retry with exponential backoff
 - Authentication errors: Clear error message with verification steps
 - Rate limiting: Implement backoff and retry with configurable delays between requests
 - Timeout handling: Set appropriate timeouts and handle gracefully
 - General exceptions: Catch and provide meaningful error messages
+
+## For Developers & Contributors
+
+- **Project Structure:**
+  - `main.py`: FastAPI app entry point.
+  - `api.py`: API routes and request/response models.
+  - `benchmark.py`: Core benchmarking logic, statistics, and visualization.
+  - `benchmark_plan.md`: Project plan and architecture overview.
+  - `pyproject.toml`: Project metadata and dependencies.
+
+- **Development Server:**
+  - Run `uvicorn main:app --reload` for local development.
+  - API documentation available at `http://localhost:8000/docs`.
+
+- **Testing:**
+  - Ensure you have Python 3.11+ and all dependencies installed.
+  - Use the CLI or REST API to test benchmarking functionality.
+
+- **Contributing:**
+  - Please follow standard Python best practices.
+  - Add tests for new features or bug fixes.
+  - Document any changes in the code and update this README as needed.
 
 ## License
 
